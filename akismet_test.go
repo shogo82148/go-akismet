@@ -11,7 +11,7 @@ import (
 func TestVerifyKey_Valid(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got, want := r.URL.Path, "/verify-key"; got != want {
+		if got, want := r.URL.Path, "/1.1/verify-key"; got != want {
 			t.Errorf("unexpected path: got %s, want %s", got, want)
 		}
 		body, err := io.ReadAll(r.Body)
@@ -59,7 +59,7 @@ func TestVerifyKey_Invalid(t *testing.T) {
 func TestCheck_HAM(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got, want := r.URL.Path, "/comment-check"; got != want {
+		if got, want := r.URL.Path, "/1.1/comment-check"; got != want {
 			t.Errorf("unexpected path: got %s, want %s", got, want)
 		}
 		body, err := io.ReadAll(r.Body)
@@ -98,7 +98,7 @@ func TestCheck_HAM(t *testing.T) {
 func TestCheck_SPAM(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got, want := r.URL.Path, "/comment-check"; got != want {
+		if got, want := r.URL.Path, "/1.1/comment-check"; got != want {
 			t.Errorf("unexpected path: got %s, want %s", got, want)
 		}
 		body, err := io.ReadAll(r.Body)
@@ -163,7 +163,7 @@ func TestCheck_Error(t *testing.T) {
 func TestSubmitHam(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got, want := r.URL.Path, "/submit-ham"; got != want {
+		if got, want := r.URL.Path, "/1.1/submit-ham"; got != want {
 			t.Errorf("unexpected path: got %s, want %s", got, want)
 		}
 		body, err := io.ReadAll(r.Body)
@@ -199,7 +199,7 @@ func TestSubmitHam(t *testing.T) {
 func TestSubmitSpam(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got, want := r.URL.Path, "/submit-spam"; got != want {
+		if got, want := r.URL.Path, "/1.1/submit-spam"; got != want {
 			t.Errorf("unexpected path: got %s, want %s", got, want)
 		}
 		body, err := io.ReadAll(r.Body)

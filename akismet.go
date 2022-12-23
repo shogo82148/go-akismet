@@ -14,7 +14,7 @@ import (
 const (
 	version          = "0.1.0"
 	defaultUserAgent = "shogo82148-go-akismet"
-	defaultBaseURL   = "https://rest.akismet.com/1.1/"
+	defaultBaseURL   = "https://rest.akismet.com/"
 )
 
 // HTTPClient is a interface for http client.
@@ -40,7 +40,7 @@ type Client struct {
 
 func (c *Client) VerifyKey(ctx context.Context, blog string) error {
 	// build the request.
-	u, err := c.resolvePath("verify-key")
+	u, err := c.resolvePath("1.1/verify-key")
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ type Result struct {
 
 func (c *Client) CheckComment(ctx context.Context, comment *Comment) (*Result, error) {
 	// build the request.
-	u, err := c.resolvePath("comment-check")
+	u, err := c.resolvePath("1.1/comment-check")
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (c *Client) CheckComment(ctx context.Context, comment *Comment) (*Result, e
 // SubmitHam submits false-positives - items that were incorrectly classified as spam by Akismet.
 func (c *Client) SubmitHam(ctx context.Context, comment *Comment) error {
 	// build the request.
-	u, err := c.resolvePath("submit-ham")
+	u, err := c.resolvePath("1.1/submit-ham")
 	if err != nil {
 		return err
 	}
@@ -245,7 +245,7 @@ func (c *Client) SubmitHam(ctx context.Context, comment *Comment) error {
 // SubmitSpam submits comments that weren’t marked as spam but should have been.
 func (c *Client) SubmitSpam(ctx context.Context, comment *Comment) error {
 	// build the request.
-	u, err := c.resolvePath("submit-spam")
+	u, err := c.resolvePath("1.1/submit-spam")
 	if err != nil {
 		return err
 	}
