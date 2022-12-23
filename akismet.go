@@ -186,6 +186,12 @@ func (c *Client) CheckComment(ctx context.Context, comment *Comment) (*Result, e
 	if comment.CommentContent != "" {
 		form.Set("comment_content", comment.CommentContent)
 	}
+	if !comment.CommentDate.IsZero() {
+		form.Set("comment_date_gmt", comment.CommentDate.UTC().Format(time.RFC3339))
+	}
+	if !comment.CommentPostModified.IsZero() {
+		form.Set("comment_post_modified_gmt", comment.CommentPostModified.UTC().Format(time.RFC3339))
+	}
 	if comment.BlogLang != "" {
 		form.Set("blog_lang", comment.BlogLang)
 	}

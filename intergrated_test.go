@@ -4,9 +4,11 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestVerifyKey_Integrated(t *testing.T) {
+	t.Parallel()
 	key := os.Getenv("AKISMET_KEY")
 	if key == "" {
 		t.Skip("AKISMET_KEY is not set")
@@ -21,6 +23,7 @@ func TestVerifyKey_Integrated(t *testing.T) {
 }
 
 func TestVerifyKey_Integrated_Fail(t *testing.T) {
+	t.Parallel()
 	key := os.Getenv("AKISMET_KEY")
 	if key == "" {
 		t.Skip("AKISMET_KEY is not set")
@@ -36,6 +39,7 @@ func TestVerifyKey_Integrated_Fail(t *testing.T) {
 }
 
 func TestCheckComment_Ham_Integrated(t *testing.T) {
+	t.Parallel()
 	key := os.Getenv("AKISMET_KEY")
 	if key == "" {
 		t.Skip("AKISMET_KEY is not set")
@@ -45,10 +49,12 @@ func TestCheckComment_Ham_Integrated(t *testing.T) {
 		APIKey: key,
 	}
 	result, err := c.CheckComment(context.Background(), &Comment{
-		Blog:     "https://example.com",
-		UserIP:   "192.0.2.1",
-		UserRole: "administrator",
-		IsTest:   true,
+		Blog:                "https://example.com",
+		UserIP:              "192.0.2.1",
+		UserRole:            "administrator",
+		CommentDate:         time.Unix(1234567890, 0),
+		CommentPostModified: time.Unix(1234567890, 0),
+		IsTest:              true,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -60,6 +66,7 @@ func TestCheckComment_Ham_Integrated(t *testing.T) {
 }
 
 func TestCheckComment_Spam_Integrated(t *testing.T) {
+	t.Parallel()
 	key := os.Getenv("AKISMET_KEY")
 	if key == "" {
 		t.Skip("AKISMET_KEY is not set")
