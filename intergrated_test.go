@@ -92,3 +92,47 @@ func TestCheckComment_Spam_Integrated(t *testing.T) {
 		t.Error("got ham, want spam")
 	}
 }
+
+func TestSubmitHam_Integrated(t *testing.T) {
+	t.Parallel()
+	key := os.Getenv("AKISMET_KEY")
+	if key == "" {
+		t.Skip("AKISMET_KEY is not set")
+	}
+
+	c := &Client{
+		APIKey: key,
+	}
+	err := c.SubmitHam(context.Background(), &Comment{
+		Blog:   "https://example.com",
+		UserIP: "192.0.2.1",
+		IsTest: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSubmitSpam_Integrated(t *testing.T) {
+	t.Parallel()
+	key := os.Getenv("AKISMET_KEY")
+	if key == "" {
+		t.Skip("AKISMET_KEY is not set")
+	}
+
+	c := &Client{
+		APIKey: key,
+	}
+	err := c.SubmitSpam(context.Background(), &Comment{
+		Blog:   "https://example.com",
+		UserIP: "192.0.2.1",
+		IsTest: true,
+
+		// known-spammer. ref. https://akismet.com/development/api/#detailed-docs
+		CommentAuthor:      "viagra-test-123",
+		CommentAuthorEmail: "akismet-guaranteed-spam@example.com",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
