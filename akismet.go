@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -35,13 +36,6 @@ type Client struct {
 	// BaseURL is the endpoint of Akismet API.
 	// If is is empty, https://rest.akismet.com/1.1/ is used.
 	BaseURL string
-}
-
-type Comment struct {
-}
-
-type Result struct {
-	OK bool
 }
 
 func (c *Client) VerifyKey(ctx context.Context, blog string) error {
@@ -76,11 +70,86 @@ func (c *Client) VerifyKey(ctx context.Context, blog string) error {
 		return err
 	}
 	respBody = bytes.TrimSpace(respBody)
-	if !bytes.Equal(respBody, []byte("valid")) {
+	if string(respBody) != "valid" {
 		return fmt.Errorf("akismet: your api key is %s", respBody)
 	}
 
 	return nil
+}
+
+type Comment struct {
+	// Blog is The front page or home URL of the instance making the request.
+	// For a blog or wiki this would be the front page. Note: Must be a full URI, including http://.
+	Blog string
+
+	// UserIP is IP address of the comment submitter.
+	UserIP string
+
+	// UserAgent is the user agent string of the web browser submitting the comment.
+	// Typically the HTTP_USER_AGENT cgi variable. Not to be confused with the user agent of your Akismet library.
+	UserAgent string
+
+	// Referrer is the content of the HTTP_REFERER header should be sent here.
+	Referrer string
+
+	// Permalink is the full permanent URL of the entry the comment was submitted to.
+	Permalink string
+
+	// CommentType is a string that describes the type of content being sent.
+	CommentType CommentType
+
+	CommentAuthor string
+
+	CommentAuthorEmail string
+
+	CommentAuthorURL string
+
+	CommentContent string
+
+	CommentDate time.Time
+
+	CommentPostModified time.Time
+
+	BlogLang string
+
+	BlogCharset string
+
+	UserRole string
+
+	IsTest bool
+
+	RecheckReason string
+
+	HoneypotFieldName string
+}
+
+type CommentType string
+
+const (
+	// CommentTypeComment is a blog comment.
+	CommentTypeComment CommentType = "comment"
+
+	// CommentTypeForumPost is a top-level forum post.
+	CommentTypeForumPost CommentType = "forum-post"
+
+	// CommentTypeReply is reply to a top-level forum post.
+	CommentTypeReply CommentType = "reply"
+
+	// CommentTypeBlogPost is a blog post.
+	CommentTypeBlogPost CommentType = "blog-post"
+
+	// CommentTypeContactForm is a contact form or feedback form submission.
+	CommentTypeContactForm CommentType = "contact-form"
+
+	// CommentTypeSignUp is new user account.
+	CommentTypeSignUp CommentType = "signup"
+
+	// CommentTypeMessage is a message sent between just a few users.
+	CommentTypeMessage CommentType = "message"
+)
+
+type Result struct {
+	Spam bool
 }
 
 func (c *Client) CheckComment(ctx context.Context, comment *Comment) (*Result, error) {
@@ -89,11 +158,58 @@ func (c *Client) CheckComment(ctx context.Context, comment *Comment) (*Result, e
 	if err != nil {
 		return nil, err
 	}
-	body := bytes.NewReader([]byte{}) // TODO: fill me
+	form := url.Values{}
+	form.Set("api_key", c.APIKey)
+	form.Set("blog", comment.Blog)
+	form.Set("user_ip", comment.UserIP)
+	if comment.UserAgent != "" {
+		form.Set("user_agent", comment.UserAgent)
+	}
+	if comment.Referrer != "" {
+		form.Set("referrer", comment.Referrer)
+	}
+	if comment.Permalink != "" {
+		form.Set("permalink", comment.Permalink)
+	}
+	if comment.CommentType != "" {
+		form.Set("comment_type", string(comment.CommentType))
+	}
+	if comment.CommentAuthor != "" {
+		form.Set("comment_author", comment.CommentAuthor)
+	}
+	if comment.CommentAuthorEmail != "" {
+		form.Set("comment_author_email", comment.CommentAuthorEmail)
+	}
+	if comment.CommentAuthorURL != "" {
+		form.Set("comment_author_url", comment.CommentAuthorURL)
+	}
+	if comment.CommentContent != "" {
+		form.Set("comment_content", comment.CommentContent)
+	}
+	if comment.BlogLang != "" {
+		form.Set("blog_lang", comment.BlogLang)
+	}
+	if comment.BlogCharset != "" {
+		form.Set("blog_charset", comment.BlogCharset)
+	}
+	if comment.UserRole != "" {
+		form.Set("user_role", comment.UserRole)
+	}
+	if comment.IsTest {
+		form.Set("is_test", "1")
+	}
+	if comment.RecheckReason != "" {
+		form.Set("recheck_reason", comment.RecheckReason)
+	}
+	if comment.HoneypotFieldName != "" {
+		form.Set("honeypot_field_name", comment.HoneypotFieldName)
+	}
+	body := strings.NewReader(form.Encode())
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), body)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// send the request.
 	resp, err := c.do(req)
@@ -102,7 +218,27 @@ func (c *Client) CheckComment(ctx context.Context, comment *Comment) (*Result, e
 	}
 	defer resp.Body.Close()
 
-	return &Result{}, nil
+	// parse the response
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("akismet: unexpected status code: %d", resp.StatusCode)
+	}
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	respBody = bytes.TrimSpace(respBody)
+	if string(respBody) == "true" {
+		return &Result{
+			Spam: true,
+		}, nil
+	}
+	if string(respBody) == "false" {
+		return &Result{
+			Spam: false,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("akismet: error from the server: %s", respBody)
 }
 
 func (c *Client) resolvePath(path string) (*url.URL, error) {
