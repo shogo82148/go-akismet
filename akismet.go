@@ -34,7 +34,7 @@ type Client struct {
 	APIKey string
 
 	// BaseURL is the endpoint of Akismet API.
-	// If is is empty, https://rest.akismet.com/1.1/ is used.
+	// If is is empty, https://rest.akismet.com/ is used.
 	BaseURL string
 }
 
