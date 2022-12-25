@@ -1,3 +1,4 @@
+// Package akismet provide API client for Akismet API.
 package akismet
 
 import (
