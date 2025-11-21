@@ -15,7 +15,7 @@ jobs:
           # - "oldstable"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup Go ${{ matrix.go }}
         uses: actions/setup-go@v6
         with:
